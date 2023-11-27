@@ -49,6 +49,7 @@ Lista *inicia_Lista(){
     lista->tamanho = 0;
     return lista;
 }
+
 void insere_Lista(Lista *lista, void *dados) {
     Node *newNode = (Node*)malloc(sizeof(Node));
     newNode->dados = dados;
@@ -63,6 +64,7 @@ void insere_Lista(Lista *lista, void *dados) {
     lista->Primeiro = newNode;
     lista->tamanho++;
 }
+
 void remove_dados_lista(Lista *l, void *val) {
   Node *temp = l->Primeiro;
   Node *anterior = NULL;
@@ -91,6 +93,7 @@ void remove_dados_lista(Lista *l, void *val) {
   }
   l->tamanho--;
 }
+
 void liberaLista(Lista *lista) {
     Node *primeiro = lista->Primeiro;
     Node *proximo;
@@ -113,6 +116,7 @@ Fila *inicia_Fila(){
     fila->tamanho = 0;
     return fila;
 }
+
 void remove_dados_fila(Fila *fila) {
     if (fila->Primeiro == NULL) {
         fprintf(stderr, "Erro: Fila vazia\n");
@@ -130,6 +134,7 @@ void remove_dados_fila(Fila *fila) {
     free(temp);              // Liberar o nó removido
     fila->tamanho--;
 }
+
 void liberaFila(Fila *fila) {
     Node *primeiro = fila->Primeiro;
     Node *proximo;
@@ -170,6 +175,17 @@ Hospital *inicia_Hospital() {
 
   return hospital;
 }
+
+void liberaHospital(Hospital *hospital) {
+  if (hospital != NULL) {
+    for (int i = 0; i < MAX_QUANTIDADE_PATOLOGIAS; i++) {
+      free(hospital->registro_pacientes[i]);
+    }
+    free(hospital->registro_pacientes);
+    free(hospital);
+  }
+}
+
 int probabilidade_paciente(){
   int probabilidade_paciente = rand() % 100;
   if(probabilidade_paciente < 20){
@@ -177,6 +193,7 @@ int probabilidade_paciente(){
   }
   return 0;
 }
+
 int *probabilidade_patologia(){
   int probabilidade_patologia = rand() % 100;
   int *patologia = (int*)malloc(sizeof(int)*2);
@@ -208,10 +225,12 @@ int *probabilidade_patologia(){
   }
   return patologia;
 }
+
 int probabilidade_raiox(){
   int probabilidade_raiox = 5 + (rand() % 6);
   return probabilidade_raiox;
 }
+
 int probabilidade_laudo(){
   int probabilidade_laudo = 10 + rand() % 21;
   return probabilidade_laudo;
@@ -232,6 +251,7 @@ char* gerarCPF() {
     char* resultado = strdup(cpf);
     return resultado;
 }
+
 int gerarIdade() {
   return rand() % 100;
 }
@@ -254,48 +274,7 @@ Paciente *gerarPaciente(int ID){
   free(patologia);
   return paciente;
 }
-void insere_ordenado(Fila *fila, Paciente *novo_paciente) {
-    // Aloca memória para o novo nó
-    Node *novo_node = (Node*)malloc(sizeof(Node));
-    // Configuração do novo nó
-    novo_node->dados = novo_paciente;
-    novo_node->anterior = NULL;
-    novo_node->proximo = NULL;
-    // Caso especial: fila vazia
-    if (fila->Primeiro == NULL) {
-        fila->Primeiro = novo_node;
-        fila->Ultimo = novo_node;
-        fila->tamanho++;
-        return;
-    }
-    // Procura a posição correta para inserir o novo paciente
-    Node *atual = fila->Primeiro;
-    while (atual != NULL && novo_paciente->patologia[1] <= ((Paciente *)atual->dados)->patologia[1]) {
-        atual = atual->proximo;
-    }
-    // Insere o novo_node na posição correta
-    if (atual != NULL) {
-        Node *anterior = atual->anterior;
-        novo_node->proximo = atual;
-        novo_node->anterior = anterior;
-        if (anterior != NULL) {
-            anterior->proximo = novo_node;
-        } 
-        else {
-            // Se anterior é nulo, então o novo_node se torna o novo Primeiro
-            fila->Primeiro = novo_node;
-        }
-        atual->anterior = novo_node;
-    } 
-    else {
-        // Se chegou ao final da fila, insere no final
-        Node *ultimo = fila->Ultimo;
-        novo_node->anterior = ultimo;
-        ultimo->proximo = novo_node;
-        fila->Ultimo = novo_node; // Atualiza o Ultimo
-    }
-    fila->tamanho++;
-}
+
 void fila_atendimento_raiox(Fila *fila_sala_de_entrada, Fila *raiox, Hospital *hospital, int unidade_de_tempo){
   if(fila_sala_de_entrada->Primeiro == NULL){
     return;
@@ -313,6 +292,7 @@ void fila_atendimento_raiox(Fila *fila_sala_de_entrada, Fila *raiox, Hospital *h
     }
   }
 }
+
 void fila_atendimento_laudo(Fila *fila_raiox, Fila *laudo, Hospital *hospital, int unidade_de_tempo){
   if (fila_raiox->Primeiro == NULL) {
     return; // Não há pacientes no raio-x, portanto, não é possível ir para o laudo
@@ -335,6 +315,7 @@ void fila_atendimento_laudo(Fila *fila_raiox, Fila *laudo, Hospital *hospital, i
     }
   }
 }
+
 void atualiza_tempo_raiox(Hospital *hospital){
   for(int i = 0;i<MAX_QUANTIDADE_RAIOX;i++){
     if(hospital->raioX[i][1] != 0){
@@ -345,6 +326,7 @@ void atualiza_tempo_raiox(Hospital *hospital){
     }
   }
 }
+
 void atualiza_tempo_laudo(Hospital *hospital){
   for(int i = 0;i<MAX_QUANTIDADE_LAUDO;i++){
     if(hospital->laudo[i][1] != 0){
@@ -355,6 +337,7 @@ void atualiza_tempo_laudo(Hospital *hospital){
     }
   }
 }
+
 void atualiza_raiox(Hospital *hospital, Fila *fila_raiox, int unidade_de_tempo){
   for(int i = 0;i<MAX_QUANTIDADE_RAIOX;i++){
     if(hospital->raioX[i][1] == 0){
@@ -372,6 +355,7 @@ void atualiza_raiox(Hospital *hospital, Fila *fila_raiox, int unidade_de_tempo){
     }
   }
 }
+
 void atualiza_laudo(Hospital *hospital, Fila *fila_laudo, int unidade_de_tempo){
   for(int i = 0;i<MAX_QUANTIDADE_LAUDO;i++){
     if(hospital->laudo[i][1] == 0){
@@ -388,6 +372,7 @@ void atualiza_laudo(Hospital *hospital, Fila *fila_laudo, int unidade_de_tempo){
     }
   }
 }
+
 int verifica_raiox(Hospital *hospital){
   for (int i = 0; i < MAX_QUANTIDADE_RAIOX; i++) {
     if (hospital->raioX[i][0] == 0) {
@@ -396,6 +381,7 @@ int verifica_raiox(Hospital *hospital){
   }
   return 0; // Não encontrou vaga no raio-x
 }
+
 int verifica_laudo(Hospital *hospital){
   for (int i = 0; i < MAX_QUANTIDADE_LAUDO; i++) {
     if (hospital->laudo[i][0] == 0) {
@@ -404,6 +390,7 @@ int verifica_laudo(Hospital *hospital){
   }
   return 0; // Não encontrou vaga no laudo
 }
+
 void atualiza_lista_controle(Fila *fila_laudo, Lista *lista_controle){
   if(fila_laudo->Primeiro == NULL || lista_controle->Primeiro == NULL){
     return;
@@ -418,6 +405,7 @@ void atualiza_lista_controle(Fila *fila_laudo, Lista *lista_controle){
     }
   }
 }
+
 float media_laudo(Lista *controle){
   float Soma_Tempo = 0.0;
   int Ocorrencias = 0;
@@ -435,6 +423,7 @@ float media_laudo(Lista *controle){
   } 
   return 0.0;
 }
+
 void media_patologias(Lista *controle, Hospital *hospital) {
     if (controle->Primeiro == NULL) {
         return;
@@ -459,7 +448,8 @@ void media_patologias(Lista *controle, Hospital *hospital) {
         auxiliar = controle->Primeiro;
     }
 }
-int exames_apos_tempo(Lista *controle, int unidade_de_tempo){
+
+int exames_apos_tempo(Lista *controle, int unidades_de_tempo){
   float Soma_Tempo = 0.0;
   int contador = 0;
   Node *auxiliar = (Node *)malloc(sizeof(Node));
@@ -473,7 +463,7 @@ int exames_apos_tempo(Lista *controle, int unidade_de_tempo){
         }
       }
       if(((Paciente *)auxiliar->dados)->saida == 0){
-        Soma_Tempo = unidade_de_tempo - ((Paciente *)auxiliar->dados)->entrada;
+        Soma_Tempo = unidades_de_tempo - ((Paciente *)auxiliar->dados)->entrada;
         if(Soma_Tempo>7200){
           contador++;
         }
@@ -482,16 +472,82 @@ int exames_apos_tempo(Lista *controle, int unidade_de_tempo){
   }
   return contador;
 } 
+
 void printa_metrica(Lista *controle, Hospital *hospital, int unidade_de_tempo){
   media_patologias(controle,  hospital);
   printf("laudo: %f\npatologias:\nSaúde normal: %f\nBronquite: %f\nPneumonia: %f\nFratura de fêmur: %f\nApendicite: %f\nFora do tempo: %d\n\n", media_laudo(controle),  hospital->registro_pacientes[0][1], hospital->registro_pacientes[1][1], hospital->registro_pacientes[2][1], hospital->registro_pacientes[3][1], hospital->registro_pacientes[4][1], exames_apos_tempo(controle, unidade_de_tempo));
 }
-void liberaHospital(Hospital *hospital) {
-  if (hospital != NULL) {
-    for (int i = 0; i < MAX_QUANTIDADE_PATOLOGIAS; i++) {
-      free(hospital->registro_pacientes[i]);
-    }
-    free(hospital->registro_pacientes);
-    free(hospital);
+
+void insere_ordenado(Fila *fila, Paciente *novo_paciente) {
+  // Aloca memória para o novo nó
+  Node *novo_node = (Node*)malloc(sizeof(Node));
+  // Configuração do novo nó
+  novo_node->dados = novo_paciente;
+  novo_node->anterior = NULL;
+  novo_node->proximo = NULL;
+  // Caso especial: fila vazia
+  if (fila->Primeiro == NULL) {
+      fila->Primeiro = novo_node;
+      fila->Ultimo = novo_node;
+      fila->tamanho++;
+      return;
   }
+  if(novo_paciente->patologia[0]<=2){
+    // Procura a posição correta para inserir o novo paciente
+    Node *atual = fila->Ultimo;
+    while (atual != NULL && novo_paciente->patologia[1] <= ((Paciente *)atual->dados)->patologia[1]) {
+      atual = atual->anterior;
+    }
+    // Insere o novo_node na posição correta
+    if (atual != NULL) {
+      Node *anterior = atual->anterior;
+      novo_node->proximo = atual;
+      novo_node->anterior = anterior;
+      if (anterior != NULL) {
+          anterior->proximo = novo_node;
+      } 
+      else {
+        // Se anterior é nulo, então o novo_node se torna o novo Primeiro
+        fila->Primeiro = novo_node;
+      }
+      atual->anterior = novo_node;
+    } 
+    else {
+      // Se chegou ao final da fila, insere no final
+      Node *ultimo = fila->Ultimo;
+      novo_node->anterior = ultimo;
+      ultimo->proximo = novo_node;
+      fila->Ultimo = novo_node; // Atualiza o Ultimo
+    }
+  }
+  else{
+    // Procura a posição correta para inserir o novo paciente
+    Node *atual = fila->Primeiro;
+    while (atual != NULL && novo_paciente->patologia[1] <= ((Paciente *)atual->dados)->patologia[1]) {
+      atual = atual->proximo;
+    }
+    // Insere o novo_node na posição correta
+    if (atual != NULL) {
+      Node *anterior = atual->anterior;
+      novo_node->proximo = atual;
+      novo_node->anterior = anterior;
+      if (anterior != NULL) {
+        anterior->proximo = novo_node;
+      } 
+      else {
+        // Se anterior é nulo, então o novo_node se torna o novo Primeiro
+        fila->Primeiro = novo_node;
+      }
+      atual->anterior = novo_node;
+    } 
+    else {
+      // Se chegou ao final da fila, insere no final
+      Node *ultimo = fila->Ultimo;
+      novo_node->anterior = ultimo;
+      ultimo->proximo = novo_node;
+      fila->Ultimo = novo_node; // Atualiza o Ultimo
+    }
+
+  }
+  fila->tamanho++;
 }
