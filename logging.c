@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include "logging.h"
 
 #define MAX_QUANTIDADE_RAIOX 5
@@ -152,17 +153,20 @@ void liberaFila(Fila *fila) {
 
 Hospital *inicia_Hospital() {
   Hospital *hospital = (Hospital *)malloc(sizeof(Hospital));
+  //confere se conseguiu alocar
   if (hospital == NULL) {
     printf("Erro: falha ao alocar memória para Hospital.\n");
     exit(EXIT_FAILURE);
   }
   hospital->registro_pacientes = (float**)malloc(MAX_QUANTIDADE_PATOLOGIAS * sizeof(int*));
+  //conferindo se alocou os ponteiros de ponteiros
   if (hospital->registro_pacientes == NULL) {
       printf("Erro: falha ao alocar memória.\n");
       exit(EXIT_FAILURE);
   }
   for (int i = 0; i < MAX_QUANTIDADE_PATOLOGIAS; i++) {
     hospital->registro_pacientes[i] = (float *)malloc(sizeof(float) * 2);
+    //conferindo se alocou cada elemento da matriz
     if (hospital->registro_pacientes[i] == NULL) {
       printf("Erro: falha ao alocar memória para registro_pacientes[%d].\n", i);
       // Liberar memória anterioriamente alocada
@@ -172,7 +176,6 @@ Hospital *inicia_Hospital() {
     hospital->registro_pacientes[i][0] = i+1;
     hospital->registro_pacientes[i][1] = 0;
   }
-
   return hospital;
 }
 
@@ -196,7 +199,7 @@ int probabilidade_paciente(){
 
 int *probabilidade_patologia(){
   int probabilidade_patologia = rand() % 100;
-  int *patologia = (int*)malloc(sizeof(int)*2);
+  int *patologia = (int*)malloc(sizeof(int)*2); //váriavel que será retornada tem 2 valores
   int SAUDE_NORMAL = 1;
   int BRONQUITE = 2;
   int PNEUMONIA = 3;
@@ -239,7 +242,7 @@ char* gerarNome() {
     char* nomes[] = {"joao", "Maria", "Carlos", "Ana", "Pedro", "jlia", "Lucas", "Mariana", "Guilherme"};
     // Gera um índice aleatório para escolher um nome da lista
     int indice = rand() % (sizeof(nomes) / sizeof(nomes[0]));
-    // Aloca memória para o nome
+    // copia e cola o nome na váriavel nome
     char* nome = strdup(nomes[indice]);
     return nome;
 }
@@ -247,7 +250,7 @@ char* gerarCPF() {
     char cpf[15];
     // Gera números aleatórios para o CPF
     sprintf(cpf, "%03d.%03d.%03d-%02d", rand() % 1000, rand() % 1000, rand() % 1000, rand() % 100);
-    // Aloca memória para o CPF
+    // copia e cola o cpf na váriavel resultado
     char* resultado = strdup(cpf);
     return resultado;
 }
@@ -276,6 +279,7 @@ Paciente *gerarPaciente(int ID){
 }
 
 void fila_atendimento_raiox(Fila *fila_sala_de_entrada, Fila *raiox, Hospital *hospital, int unidade_de_tempo){
+  //verifica se tem algum paciente na entrada do hospital
   if(fila_sala_de_entrada->Primeiro == NULL){
     return;
   }
@@ -288,7 +292,7 @@ void fila_atendimento_raiox(Fila *fila_sala_de_entrada, Fila *raiox, Hospital *h
       auxiliar->entrada_raiox = unidade_de_tempo;
       remove_dados_fila(fila_sala_de_entrada);
       insere_ordenado(raiox, auxiliar);
-      return;
+      return; //termina o loop e retorna
     }
   }
 }
@@ -311,7 +315,7 @@ void fila_atendimento_laudo(Fila *fila_raiox, Fila *laudo, Hospital *hospital, i
       auxiliar->entrada_laudo = unidade_de_tempo;
       remove_dados_fila(fila_raiox);
       insere_ordenado(laudo, auxiliar);
-      return;
+      return; //termina o loop e retorna
     }
   }
 }
@@ -397,10 +401,10 @@ void atualiza_lista_controle(Fila *fila_laudo, Lista *lista_controle){
   }
   Node *auxiliar = fila_laudo->Primeiro;
   if(((Paciente*)auxiliar->dados)->saida == 0) return;
-  for(Node *unidade_de_tempo = lista_controle->Primeiro;unidade_de_tempo != NULL; unidade_de_tempo = unidade_de_tempo->proximo){
-    if(((Paciente*)unidade_de_tempo->dados)->id == ((Paciente*)auxiliar->dados)->id){
-      lista_controle->Primeiro->dados = unidade_de_tempo->dados; //troca apenas os dados
-      remove_dados_fila(fila_laudo);//tira da fila, unidade_de_tempoá foi atendido
+  for(Node *Dados_atualizados = lista_controle->Primeiro;Dados_atualizados != NULL; Dados_atualizados = Dados_atualizados->proximo){
+    if(((Paciente*)Dados_atualizados->dados)->id == ((Paciente*)auxiliar->dados)->id){
+      lista_controle->Primeiro->dados = Dados_atualizados->dados; //troca apenas os dados
+      remove_dados_fila(fila_laudo);//tira da fila, o paciente já foi atendido
       return;
     }
   }
@@ -449,7 +453,7 @@ void media_patologias(Lista *controle, Hospital *hospital) {
     }
 }
 
-int exames_apos_tempo(Lista *controle, int unidades_de_tempo){
+int exames_apos_tempo(Lista *controle){
   float Soma_Tempo = 0.0;
   int contador = 0;
   Node *auxiliar = (Node *)malloc(sizeof(Node));
@@ -462,20 +466,15 @@ int exames_apos_tempo(Lista *controle, int unidades_de_tempo){
           contador++;
         }
       }
-      if(((Paciente *)auxiliar->dados)->saida == 0){
-        Soma_Tempo = unidades_de_tempo - ((Paciente *)auxiliar->dados)->entrada;
-        if(Soma_Tempo>7200){
-          contador++;
-        }
-      }
       auxiliar = auxiliar->proximo;
   }
   return contador;
 } 
 
-void printa_metrica(Lista *controle, Hospital *hospital, int unidade_de_tempo){
+void printa_metrica(Lista *controle, Hospital *hospital){
   media_patologias(controle,  hospital);
-  printf("laudo: %f\npatologias:\nSaúde normal: %f\nBronquite: %f\nPneumonia: %f\nFratura de fêmur: %f\nApendicite: %f\nFora do tempo: %d\n\n", media_laudo(controle),  hospital->registro_pacientes[0][1], hospital->registro_pacientes[1][1], hospital->registro_pacientes[2][1], hospital->registro_pacientes[3][1], hospital->registro_pacientes[4][1], exames_apos_tempo(controle, unidade_de_tempo));
+  printf("laudo: %f\npatologias:\nSaúde normal: %f\nBronquite: %f\nPneumonia: %f\nFratura de fêmur: %f\nApendicite: %f\nFora do tempo: %d\n\n", media_laudo(controle),  hospital->registro_pacientes[0][1], hospital->registro_pacientes[1][1], hospital->registro_pacientes[2][1], hospital->registro_pacientes[3][1], hospital->registro_pacientes[4][1], exames_apos_tempo(controle));
+  sleep(1);
 }
 
 void insere_ordenado(Fila *fila, Paciente *novo_paciente) {
